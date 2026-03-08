@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { HealthDataProvider } from './context/HealthDataContext'
 import MoodTracker from './modules/MoodTracker'
 import WaterIntakeTracker from './modules/WaterIntakeTracker'
+import WaterIntakeGraph from './components/WaterIntakeGraph'
 import DailyGraph from './components/DailyGraph'
 import WeeklyGraph from './components/WeeklyGraph'
 import HistoryView from './components/HistoryView'
 import FileManager from './components/FileManager'
 
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [waterEntries, setWaterEntries] = useState([]); // Shared state for water entries
 
   return (
     <HealthDataProvider>
@@ -62,24 +64,24 @@ function App() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <MoodTracker />
-                <WaterIntakeTracker />
+                <WaterIntakeTracker
+                  entries={waterEntries}
+                  setEntries={setWaterEntries} // Pass shared state and updater
+                />
+                <WaterIntakeGraph entries={waterEntries} />
                 <DailyGraph />
                 <WeeklyGraph />
               </div>
             </div>
           )}
 
-          {activeTab === 'history' && (
-            <HistoryView />
-          )}
+          {activeTab === 'history' && <HistoryView />}
 
-          {activeTab === 'data' && (
-            <FileManager />
-          )}
+          {activeTab === 'data' && <FileManager />}
         </div>
       </div>
     </HealthDataProvider>
-  )
+  );
 }
 
-export default App
+export default App;

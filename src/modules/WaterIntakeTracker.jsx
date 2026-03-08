@@ -1,120 +1,90 @@
 import React, { useState, useEffect } from 'react';
-import { useDrag } from '@use-gesture/react';
 import { motion } from 'framer-motion';
+import { getTodayFormatted } from '../utils/helpers';
 
-const WaterIntakeTracker = () => {
-  const FL_OZ_TO_ML = 29.5735; // Conversion factor
-  const DAILY_GOAL_FL_OZ = 125; // Recommended daily goal in fluid ounces (approx. 3700 mL)
+const WaterIntakeTracker = ({ entries, setEntries }) => {
+  const DAILY_GOAL_FL_OZ = 125; // Daily goal in fluid ounces
+  const STANDARD_DRINK = 8; // Standard drink size in fluid ounces
 
-  const [intake, setIntake] = useState(0); // Current water intake in fluid ounces
-  const [dragY, setDragY] = useState(0); // Drag position
+  const [intake, setIntake] = useState(0); // Total water intake for the day
+  const [today, setToday] = useState(getTodayFormatted()); // Track the current day
 
-  // Load saved intake from localStorage
+  // Load saved data from localStorage
   useEffect(() => {
     const savedIntake = localStorage.getItem('waterIntake');
-    if (savedIntake) {
-      setIntake(parseFloat(savedIntake)); // Parse as float for fluid ounces
+    const savedEntries = localStorage.getItem('waterEntries');
+    const savedDate = localStorage.getItem('waterIntakeDate');
+
+    if (savedDate === getTodayFormatted()) {
+      if (savedIntake) setIntake(parseFloat(savedIntake));
+      if (savedEntries) setEntries(JSON.parse(savedEntries));
+    } else {
+      // Reset if the day has changed
+      resetTracker();
     }
   }, []);
 
-  // Save intake to localStorage
+  // Save data to localStorage
   useEffect(() => {
-    localStorage.setItem('waterIntake', intake.toFixed(1)); // Save as string with 1 decimal
-  }, [intake]);
+    localStorage.setItem('waterIntake', intake.toFixed(1));
+    localStorage.setItem('waterEntries', JSON.stringify(entries));
+    localStorage.setItem('waterIntakeDate', today);
+  }, [intake, entries, today]);
 
-  // Handle drag gesture
-  const bind = useDrag(({ offset: [, y], last }) => {
-    const containerHeight = 256; // Height of the water container in pixels
-    const newLevel = Math.max(0, Math.min(DAILY_GOAL_FL_OZ, intake + ((-y / containerHeight) * DAILY_GOAL_FL_OZ)));
+  // Handle adding water intake
+  const handleAddWater = () => {
+    const now = new Date();
+    const newEntry = {
+      amount: STANDARD_DRINK,
+      timestamp: now.toISOString(),
+      time: now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+    };
 
-    if (last) {
-      // On drag release, update the intake
-      setIntake(newLevel);
-    } else {
-      // Update drag position for animation
-      setDragY(y);
-    }
-  });
+    setIntake((prev) => Math.min(prev + STANDARD_DRINK, DAILY_GOAL_FL_OZ));
+    setEntries((prev) => [...prev, newEntry]);
+  };
 
-  const progress = (intake / DAILY_GOAL_FL_OZ) * 100; // Progress percentage
+  // Reset the tracker
+  const resetTracker = () => {
+    setIntake(0);
+    setEntries([]);
+    setToday(getTodayFormatted());
+    localStorage.removeItem('waterIntake');
+    localStorage.removeItem('waterEntries');
+    localStorage.removeItem('waterIntakeDate');
+  };
+
+  const progress = (intake / DAILY_GOAL_FL_OZ) * 100;
 
   return (
     <div className="p-4 bg-white rounded shadow-md">
       <h2 className="text-xl font-bold mb-4">Water Intake Tracker</h2>
-      <div
-        className="relative w-full h-64 bg-blue-100 rounded overflow-hidden"
-        onClick={(e) => {
-          const container = e.currentTarget;
-          const containerHeight = container.offsetHeight; // Get the height of the container
-          const clickY = e.nativeEvent.offsetY; // Get the Y position of the click relative to the container
-          const newIntake = Math.max(
-            0,
-            Math.min(DAILY_GOAL_FL_OZ, DAILY_GOAL_FL_OZ * (1 - clickY / containerHeight)) // Calculate intake based on click position
-          );
-          setIntake(newIntake); // Update the intake
-        }}
-      >
-        {/* Water Level */}
-        <motion.div
-          {...bind()} // Bind drag gesture
-          className="absolute bottom-0 left-0 w-full bg-blue-500"
-          style={{
-            height: `${progress}%`,
-          }}
-          animate={{
-            y: dragY, // Animate based on drag position
-          }}
-          transition={{
-            type: 'spring',
-            stiffness: 200,
-            damping: 20,
-          }}
-        />
-      </div>
-      <p className="mt-4 text-center">
-        {intake.toFixed(1)} fl oz / {DAILY_GOAL_FL_OZ} fl oz
-      </p>
-      <div className="flex justify-center mt-4 gap-2">
+      <div className="flex flex-col items-center">
+        {/* Progress Bar */}
+        <div className="w-full h-6 bg-blue-100 rounded overflow-hidden mb-4">
+          <motion.div
+            className="h-full bg-blue-500"
+            style={{ width: `${progress}%` }}
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+          />
+        </div>
+        <p className="text-lg font-semibold mb-4">
+          {intake.toFixed(1)} fl oz / {DAILY_GOAL_FL_OZ} fl oz
+        </p>
         <button
-          className="px-4 py-2 bg-blue-500 text-white rounded"
-          onClick={() => setIntake((prev) => Math.min(prev + 8, DAILY_GOAL_FL_OZ))} // Add 8 fl oz
+          className="px-4 py-2 bg-blue-500 text-white rounded mb-2"
+          onClick={handleAddWater}
+          disabled={intake >= DAILY_GOAL_FL_OZ}
         >
           +8 fl oz
         </button>
         <button
           className="px-4 py-2 bg-red-500 text-white rounded"
-          onClick={() => setIntake(0)} // Reset intake
+          onClick={resetTracker}
         >
           Reset
         </button>
-      </div>
-      {/* Progress Ring */}
-      <div className="mt-6 flex justify-center">
-        <svg width="100" height="100" viewBox="0 0 36 36" className="progress-ring">
-          <circle
-            className="progress-ring__background"
-            stroke="#e6e6e6"
-            strokeWidth="2"
-            fill="transparent"
-            r="16"
-            cx="18"
-            cy="18"
-          />
-          <motion.circle
-            className="progress-ring__progress"
-            stroke="#4f46e5"
-            strokeWidth="2"
-            fill="transparent"
-            r="16"
-            cx="18"
-            cy="18"
-            strokeDasharray="100"
-            strokeDashoffset={100 - progress}
-            initial={{ strokeDashoffset: 100 }}
-            animate={{ strokeDashoffset: 100 - progress }}
-            transition={{ duration: 0.5 }}
-          />
-        </svg>
       </div>
     </div>
   );
