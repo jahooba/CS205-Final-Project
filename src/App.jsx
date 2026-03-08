@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { HealthDataProvider } from './context/HealthDataContext'
 import MoodTracker from './modules/MoodTracker'
+import WaterIntakeTracker from './modules/WaterIntakeTracker'
 import DailyGraph from './components/DailyGraph'
 import WeeklyGraph from './components/WeeklyGraph'
 import HistoryView from './components/HistoryView'
@@ -61,6 +62,7 @@ function App() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <MoodTracker />
+                <WaterIntakeTracker />
                 <DailyGraph />
                 <WeeklyGraph />
               </div>
