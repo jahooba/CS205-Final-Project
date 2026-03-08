@@ -1,29 +1,81 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine
+} from 'recharts';
+
+const DAILY_GOAL = 125;
 
 const WaterIntakeGraph = ({ entries = [] }) => {
-  // Ensure `entries` is always an array
-  const data = entries.map((entry, index) => ({
-    time: entry.time,
-    amount: entry.amount || 0, // Default to 0 if `amount` is missing
-  }));
+
+  let runningTotal = 0;
+
+  const data = entries.map((entry) => {
+    runningTotal += entry.amount || 0;
+
+    return {
+      time: entry.time,
+      total: runningTotal
+    };
+  });
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">Today's Water Intake</h3>
+
+      <h3 className="text-xl font-semibold text-gray-800 mb-4">
+        Today's Hydration
+      </h3>
+
       {data.length === 0 ? (
-        <p className="text-gray-500 text-center">No water intake data available.</p>
+        <p className="text-gray-500 text-center">
+          No water intake data available.
+        </p>
       ) : (
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data}>
+
             <CartesianGrid strokeDasharray="3 3" />
+
             <XAxis dataKey="time" />
-            <YAxis />
+
+            <YAxis
+              label={{
+                value: "Fluid Ounces",
+                angle: -90,
+                position: "insideLeft"
+              }}
+            />
+
             <Tooltip />
-            <Line type="monotone" dataKey="amount" stroke="#4f46e5" strokeWidth={2} name="Water Intake (fl oz)" />
+
+            {/* Hydration line */}
+            <Line
+              type="monotone"
+              dataKey="total"
+              stroke="#3b82f6"
+              strokeWidth={3}
+              dot={{ r: 4 }}
+              name="Total Water"
+            />
+
+            {/* Daily goal line */}
+            <ReferenceLine
+              y={DAILY_GOAL}
+              stroke="#22c55e"
+              strokeDasharray="5 5"
+              label="Goal"
+            />
+
           </LineChart>
         </ResponsiveContainer>
       )}
+
     </div>
   );
 };

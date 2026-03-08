@@ -1,93 +1,178 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { getTodayFormatted } from '../utils/helpers';
+import React, { useState } from "react";
 
-const WaterIntakeTracker = ({ entries, setEntries }) => {
-  const DAILY_GOAL_FL_OZ = 125; // Daily goal in fluid ounces
-  const STANDARD_DRINK = 8; // Standard drink size in fluid ounces
+const MAX_DRINK = 8;
+const DAILY_GOAL = 125;
 
-  const [intake, setIntake] = useState(0); // Total water intake for the day
-  const [today, setToday] = useState(getTodayFormatted()); // Track the current day
+export default function WaterBottleTracker({ entries, setEntries }) {
 
-  // Load saved data from localStorage
-  useEffect(() => {
-    const savedIntake = localStorage.getItem('waterIntake');
-    const savedEntries = localStorage.getItem('waterEntries');
-    const savedDate = localStorage.getItem('waterIntakeDate');
+  const [amount, setAmount] = useState(0);
 
-    if (savedDate === getTodayFormatted()) {
-      if (savedIntake) setIntake(parseFloat(savedIntake));
-      if (savedEntries) setEntries(JSON.parse(savedEntries));
-    } else {
-      // Reset if the day has changed
-      resetTracker();
-    }
-  }, []);
+  const addWater = (value) => {
+    setAmount((prev) => Math.min(prev + value, MAX_DRINK));
+  };
 
-  // Save data to localStorage
-  useEffect(() => {
-    localStorage.setItem('waterIntake', intake.toFixed(1));
-    localStorage.setItem('waterEntries', JSON.stringify(entries));
-    localStorage.setItem('waterIntakeDate', today);
-  }, [intake, entries, today]);
+  const resetDrink = () => {
+    setAmount(0);
+  };
 
-  // Handle adding water intake
-  const handleAddWater = () => {
+  const submitDrink = () => {
+    if (amount === 0) return;
+
     const now = new Date();
+
     const newEntry = {
-      amount: STANDARD_DRINK,
-      timestamp: now.toISOString(),
-      time: now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+      amount: amount,
+      time: now.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      }),
+      timestamp: now.toISOString()
     };
 
-    setIntake((prev) => Math.min(prev + STANDARD_DRINK, DAILY_GOAL_FL_OZ));
-    setEntries((prev) => [...prev, newEntry]);
+    setEntries(prev => [...prev, newEntry]);
+
+    setAmount(0);
   };
 
-  // Reset the tracker
-  const resetTracker = () => {
-    setIntake(0);
-    setEntries([]);
-    setToday(getTodayFormatted());
-    localStorage.removeItem('waterIntake');
-    localStorage.removeItem('waterEntries');
-    localStorage.removeItem('waterIntakeDate');
-  };
+  // current drink progress
+  const drinkProgress = (amount / MAX_DRINK) * 100;
 
-  const progress = (intake / DAILY_GOAL_FL_OZ) * 100;
+  // total hydration
+  const total = entries.reduce(
+    (sum, entry) => sum + (entry.amount || 0),
+    0
+  );
+
+  const goalProgress = Math.min(total / DAILY_GOAL, 1);
+
+  const radius = 70;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - goalProgress * circumference;
 
   return (
-    <div className="p-4 bg-white rounded shadow-md">
-      <h2 className="text-xl font-bold mb-4">Water Intake Tracker</h2>
+    <div className="p-6 bg-white rounded shadow-md flex flex-col items-center gap-6">
+
+      <h2 className="text-xl font-bold">
+        Water Intake Tracker
+      </h2>
+
+      {/* Hydration Goal Ring */}
+
       <div className="flex flex-col items-center">
-        {/* Progress Bar */}
-        <div className="w-full h-6 bg-blue-100 rounded overflow-hidden mb-4">
-          <motion.div
-            className="h-full bg-blue-500"
-            style={{ width: `${progress}%` }}
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
+
+        <svg width="180" height="180">
+
+          {/* background ring */}
+          <circle
+            cx="90"
+            cy="90"
+            r={radius}
+            stroke="#e5e7eb"
+            strokeWidth="12"
+            fill="none"
           />
-        </div>
-        <p className="text-lg font-semibold mb-4">
-          {intake.toFixed(1)} fl oz / {DAILY_GOAL_FL_OZ} fl oz
+
+          {/* progress */}
+          <circle
+            cx="90"
+            cy="90"
+            r={radius}
+            stroke="#3b82f6"
+            strokeWidth="12"
+            fill="none"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            transform="rotate(-90 90 90)"
+          />
+
+          {/* center text */}
+          <text
+            x="50%"
+            y="50%"
+            dominantBaseline="middle"
+            textAnchor="middle"
+            className="text-lg font-bold"
+          >
+            {total} oz
+          </text>
+
+        </svg>
+
+        <p className="text-gray-600 mt-2">
+          {Math.round(goalProgress * 100)}% of {DAILY_GOAL} oz goal
         </p>
+
+      </div>
+
+      {/* Bottle visual */}
+
+      <div className="flex flex-col items-center">
+
+        <div className="relative w-24 h-72 border-4 border-blue-400 rounded-b-3xl rounded-t-xl overflow-hidden">
+
+          <div
+            className="absolute bottom-0 w-full bg-gradient-to-t from-blue-600 to-blue-300 transition-all duration-300"
+            style={{ height: `${drinkProgress}%` }}
+          />
+
+        </div>
+
+        <p className="mt-3 font-semibold">
+          {amount} / {MAX_DRINK} oz
+        </p>
+
+      </div>
+
+      {/* Drink buttons */}
+
+      <div className="flex gap-3">
+
         <button
-          className="px-4 py-2 bg-blue-500 text-white rounded mb-2"
-          onClick={handleAddWater}
-          disabled={intake >= DAILY_GOAL_FL_OZ}
+          className="px-3 py-1 bg-blue-400 text-white rounded"
+          onClick={() => addWater(2)}
         >
-          +8 fl oz
+          Sip (2 oz)
         </button>
+
         <button
-          className="px-4 py-2 bg-red-500 text-white rounded"
-          onClick={resetTracker}
+          className="px-3 py-1 bg-blue-500 text-white rounded"
+          onClick={() => addWater(4)}
+        >
+          Gulp (4 oz)
+        </button>
+
+        <button
+          className="px-3 py-1 bg-blue-600 text-white rounded"
+          onClick={() => addWater(8)}
+        >
+          Drink (8 oz)
+        </button>
+
+      </div>
+
+      {/* Controls */}
+
+      <div className="flex gap-3">
+
+        <button
+          className="px-4 py-2 bg-green-500 text-white rounded"
+          onClick={submitDrink}
+          disabled={amount === 0}
+        >
+          Submit Drink
+        </button>
+
+        <button
+          className="px-4 py-2 bg-gray-400 text-white rounded"
+          onClick={resetDrink}
+          disabled={amount === 0}
         >
           Reset
         </button>
+
       </div>
+
     </div>
   );
-};
-
-export default WaterIntakeTracker;
+}
