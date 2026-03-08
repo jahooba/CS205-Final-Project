@@ -10,6 +10,7 @@ export function HealthDataProvider({ children }) {
   const [fileHandle, setFileHandle] = useState(null)
   const [fileStatus, setFileStatus] = useState('none') // 'none', 'saving', 'saved', 'error'
   const fileHandleRef = useRef(null)
+  const [waterEntries, setWaterEntries] = useState([])
 
   // Load data on startup
   useEffect(() => {
@@ -17,6 +18,7 @@ export function HealthDataProvider({ children }) {
       // Load from localStorage first
       const loaded = loadData()
       setMoodEntries(loaded.moodEntries)
+      setWaterEntries(loaded.waterEntries)
       setIsLoaded(true)
       
       // Try to set up file auto-save
@@ -29,16 +31,14 @@ export function HealthDataProvider({ children }) {
           
           // Load data from file if it's newer
           const fileData = await readFile(handle)
-          if (fileData?.moodEntries) {
-            const fileDate = fileData.lastSaved ? new Date(fileData.lastSaved) : null
-            const storageDate = loaded.moodEntries.length > 0 
-              ? new Date(Math.max(...loaded.moodEntries.map(e => e.id))) 
-              : null
-            
-            if (!storageDate || (fileDate && fileDate > storageDate)) {
-              setMoodEntries(fileData.moodEntries)
-              saveData(fileData.moodEntries)
-            }
+          if (fileData?.moodEntries || fileData?.waterEntries) {
+            setMoodEntries(fileData.moodEntries || [])
+            setWaterEntries(fileData.waterEntries || [])
+          
+            saveData({
+              moodEntries: fileData.moodEntries || [],
+              waterEntries: fileData.waterEntries || []
+            })
           }
         }
       } else {
@@ -50,6 +50,7 @@ export function HealthDataProvider({ children }) {
           saveFileHandleInfo(handle)
           await writeFile(handle, {
             moodEntries: loaded.moodEntries,
+            waterEntries: loaded.waterEntries || [],
             lastSaved: new Date().toISOString()
           })
         }
@@ -62,10 +63,10 @@ export function HealthDataProvider({ children }) {
   // Auto-save to localStorage and file when data changes
   useEffect(() => {
     if (isLoaded) {
-      saveData(moodEntries)
+      saveData({moodEntries, waterEntries})
       saveToFile()
     }
-  }, [moodEntries, isLoaded])
+  }, [moodEntries, waterEntries, isLoaded])
 
   async function saveToFile() {
     const handle = fileHandleRef.current
@@ -74,6 +75,7 @@ export function HealthDataProvider({ children }) {
     setFileStatus('saving')
     const success = await writeFile(handle, {
       moodEntries,
+      waterEntries,
       lastSaved: new Date().toISOString()
     })
     
@@ -106,9 +108,15 @@ export function HealthDataProvider({ children }) {
       saveFileHandleInfo(handle)
       
       const data = await readFile(handle)
-      if (data?.moodEntries) {
-        setMoodEntries(data.moodEntries)
-        saveData(data.moodEntries)
+      if (data?.moodEntries || data?.waterEntries) {
+        setMoodEntries(data.moodEntries || [])
+        setWaterEntries(data.waterEntries || [])
+      
+        saveData({
+          moodEntries: data.moodEntries || [],
+          waterEntries: data.waterEntries || []
+        })
+      
         return true
       }
     }
@@ -123,6 +131,10 @@ export function HealthDataProvider({ children }) {
     setMoodEntries(moodEntries.filter(entry => entry.id !== id))
   }
 
+  const addWaterEntry = (entry) => {
+    setWaterEntries(prev => [...prev, entry])
+  }
+
   const setAllData = (moodEntries) => {
     setMoodEntries(moodEntries)
   }
@@ -130,6 +142,7 @@ export function HealthDataProvider({ children }) {
   const exportData = () => {
     const data = {
       moodEntries,
+      waterEntries,
       exportedAt: new Date().toISOString(),
     }
     return JSON.stringify(data, null, 2)
@@ -140,6 +153,10 @@ export function HealthDataProvider({ children }) {
       const data = JSON.parse(jsonString)
       if (data.moodEntries && Array.isArray(data.moodEntries)) {
         setAllData(data.moodEntries)
+        return true
+      }
+      if (data.waterEntries && Array.isArray(data.waterEntries)) {
+        setWaterEntries(data.waterEntries)
         return true
       }
       return false
@@ -155,6 +172,10 @@ export function HealthDataProvider({ children }) {
         moodEntries,
         addMoodEntry,
         deleteMoodEntry,
+
+        waterEntries,
+        addWaterEntry,
+
         exportData,
         importData,
         setAllData,

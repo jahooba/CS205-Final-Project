@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useHealthData } from "../context/HealthDataContext";
 
 const MAX_DRINK = 8;
 const DAILY_GOAL = 125;
 
-export default function WaterBottleTracker({ entries, setEntries }) {
+export default function WaterBottleTracker() {
 
+  const { waterEntries, addWaterEntry } = useHealthData();
   const [amount, setAmount] = useState(0);
 
   const addWater = (value) => {
@@ -21,6 +23,7 @@ export default function WaterBottleTracker({ entries, setEntries }) {
     const now = new Date();
 
     const newEntry = {
+      id: now.getTime(),
       amount: amount,
       time: now.toLocaleTimeString([], {
         hour: "numeric",
@@ -29,16 +32,14 @@ export default function WaterBottleTracker({ entries, setEntries }) {
       timestamp: now.toISOString()
     };
 
-    setEntries(prev => [...prev, newEntry]);
+    addWaterEntry(newEntry);
 
     setAmount(0);
   };
 
-  // current drink progress
   const drinkProgress = (amount / MAX_DRINK) * 100;
 
-  // total hydration
-  const total = entries.reduce(
+  const total = waterEntries.reduce(
     (sum, entry) => sum + (entry.amount || 0),
     0
   );
@@ -56,13 +57,12 @@ export default function WaterBottleTracker({ entries, setEntries }) {
         Water Intake Tracker
       </h2>
 
-      {/* Hydration Goal Ring */}
+      {/* Hydration Ring */}
 
       <div className="flex flex-col items-center">
 
         <svg width="180" height="180">
 
-          {/* background ring */}
           <circle
             cx="90"
             cy="90"
@@ -72,7 +72,6 @@ export default function WaterBottleTracker({ entries, setEntries }) {
             fill="none"
           />
 
-          {/* progress */}
           <circle
             cx="90"
             cy="90"
@@ -86,7 +85,6 @@ export default function WaterBottleTracker({ entries, setEntries }) {
             transform="rotate(-90 90 90)"
           />
 
-          {/* center text */}
           <text
             x="50%"
             y="50%"
@@ -105,7 +103,7 @@ export default function WaterBottleTracker({ entries, setEntries }) {
 
       </div>
 
-      {/* Bottle visual */}
+      {/* Bottle */}
 
       <div className="flex flex-col items-center">
 
@@ -124,7 +122,7 @@ export default function WaterBottleTracker({ entries, setEntries }) {
 
       </div>
 
-      {/* Drink buttons */}
+      {/* Buttons */}
 
       <div className="flex gap-3">
 
@@ -164,7 +162,7 @@ export default function WaterBottleTracker({ entries, setEntries }) {
         </button>
 
         <button
-          className="px-4 py-2 bg-gray-400 text-white rounded"
+          className="px-4 py-2 bg-red-500 text-white rounded"
           onClick={resetDrink}
           disabled={amount === 0}
         >

@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import { useHealthData } from "../context/HealthDataContext";
 import {
   LineChart,
   Line,
@@ -8,15 +9,17 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine
-} from 'recharts';
+} from "recharts";
 
 const DAILY_GOAL = 125;
 
-const WaterIntakeGraph = ({ entries = [] }) => {
+export default function WaterIntakeGraph() {
+
+  const { waterEntries } = useHealthData();
 
   let runningTotal = 0;
 
-  const data = entries.map((entry) => {
+  const data = waterEntries.map((entry) => {
     runningTotal += entry.amount || 0;
 
     return {
@@ -38,6 +41,7 @@ const WaterIntakeGraph = ({ entries = [] }) => {
         </p>
       ) : (
         <ResponsiveContainer width="100%" height={300}>
+
           <LineChart data={data}>
 
             <CartesianGrid strokeDasharray="3 3" />
@@ -54,7 +58,6 @@ const WaterIntakeGraph = ({ entries = [] }) => {
 
             <Tooltip />
 
-            {/* Hydration line */}
             <Line
               type="monotone"
               dataKey="total"
@@ -64,7 +67,6 @@ const WaterIntakeGraph = ({ entries = [] }) => {
               name="Total Water"
             />
 
-            {/* Daily goal line */}
             <ReferenceLine
               y={DAILY_GOAL}
               stroke="#22c55e"
@@ -73,11 +75,10 @@ const WaterIntakeGraph = ({ entries = [] }) => {
             />
 
           </LineChart>
+
         </ResponsiveContainer>
       )}
 
     </div>
   );
-};
-
-export default WaterIntakeGraph;
+}

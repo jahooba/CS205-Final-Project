@@ -10,7 +10,6 @@ import FileManager from './components/FileManager'
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [waterEntries, setWaterEntries] = useState([]); // Shared state for water entries
 
   return (
     <HealthDataProvider>
@@ -64,11 +63,8 @@ function App() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <MoodTracker />
-                <WaterIntakeTracker
-                  entries={waterEntries}
-                  setEntries={setWaterEntries} // Pass shared state and updater
-                />
-                <WaterIntakeGraph entries={waterEntries} />
+                <WaterIntakeTracker />
+                <WaterIntakeGraph />
                 <DailyGraph />
                 <WeeklyGraph />
               </div>
