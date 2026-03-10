@@ -130,7 +130,7 @@ export default function WaterBottleTracker() {
           className="px-3 py-1 bg-blue-400 text-white rounded"
           onClick={() => addWater(2)}
         >
-          Sip (2 oz)
+          Sip (1 oz)
         </button>
 
         <button
