@@ -10,7 +10,10 @@ export default function FoodIntakeTracker() {
   const [calories, setCalories] = useState('');
 
     const submitFood = () => {
-    if (!food || !calories || calories <= 0) return;
+    if (!food || !calories || calories <= 0 || calories > MAX_CALORIES) {
+        alert(`Please enter a valid food item and calories (1-${MAX_CALORIES}).`);
+        return;
+    }
 
     const now = new Date();
 
