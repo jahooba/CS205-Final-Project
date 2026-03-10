@@ -10,7 +10,7 @@ import HistoryView from './components/HistoryView'
 import FileManager from './components/FileManager'
 
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   return (
     <HealthDataProvider>
@@ -73,17 +73,13 @@ function App() {
             </div>
           )}
 
-          {activeTab === 'history' && (
-            <HistoryView />
-          )}
+          {activeTab === 'history' && <HistoryView />}
 
-          {activeTab === 'data' && (
-            <FileManager />
-          )}
+          {activeTab === 'data' && <FileManager />}
         </div>
       </div>
     </HealthDataProvider>
-  )
+  );
 }
 
-export default App
+export default App;
