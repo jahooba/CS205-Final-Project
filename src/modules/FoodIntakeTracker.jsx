@@ -34,6 +34,10 @@ export default function FoodIntakeTracker() {
     setCalories('');
   };
 
+  const today = new Date().toISOString().split('T')[0];
+  const todaysFoodEntries = foodEntries.filter(entry => entry.timestamp.startsWith(today));
+  const todaysCalories = todaysFoodEntries.reduce((sum, entry) => sum + (entry.calories || 0), 0);
+
     return (
     <div className="p-6 bg-white rounded shadow-md flex flex-col items-center gap-6">
       <h2 className="text-xl font-bold">Food Intake Tracker</h2>
@@ -42,10 +46,10 @@ export default function FoodIntakeTracker() {
         <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
           <div
             className="bg-green-500 h-4 rounded-full"
-            style={{ width: `${Math.min((foodEntries.reduce((sum, entry) => sum + (entry.calories || 0), 0) / DAILY_GOAL) * 100, 100)}%` }}
+            style={{ width: `${Math.min((todaysCalories / DAILY_GOAL) * 100, 100)}%` }}
           ></div>
           <p className="text-sm text-gray-600 mt-1">
-            {`Today's Calories: ${foodEntries.reduce((sum, entry) => sum + (entry.calories || 0), 0)} / ${DAILY_GOAL} kcal`}
+            {`Today's Calories: ${todaysCalories} / ${DAILY_GOAL} kcal`}
           </p>
         </div>
       </div>
