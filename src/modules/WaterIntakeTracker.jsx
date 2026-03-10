@@ -39,10 +39,9 @@ export default function WaterBottleTracker() {
 
   const drinkProgress = (amount / MAX_DRINK) * 100;
 
-  const total = waterEntries.reduce(
-    (sum, entry) => sum + (entry.amount || 0),
-    0
-  );
+  const today = new Date().toISOString().split('T')[0];
+  const todaysWaterEntries = waterEntries.filter(entry => entry.timestamp.startsWith(today));
+  const total = todaysWaterEntries.reduce((sum, entry) => sum + entry.amount, 0);
 
   const goalProgress = Math.min(total / DAILY_GOAL, 1);
 
