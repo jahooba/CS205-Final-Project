@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { HealthDataProvider } from './context/HealthDataContext'
 import MoodTracker from './modules/MoodTracker'
+import WaterIntakeTracker from './modules/WaterIntakeTracker'
+import FoodIntakeTracker from './modules/FoodIntakeTracker'
+import WaterIntakeGraph from './components/WaterIntakeGraph'
 import DailyGraph from './components/DailyGraph'
 import WeeklyGraph from './components/WeeklyGraph'
 import HistoryView from './components/HistoryView'
 import FileManager from './components/FileManager'
 
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   return (
     <HealthDataProvider>
@@ -61,23 +64,22 @@ function App() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <MoodTracker />
+                <WaterIntakeTracker />
+                <WaterIntakeGraph />
+                <FoodIntakeTracker />
                 <DailyGraph />
                 <WeeklyGraph />
               </div>
             </div>
           )}
 
-          {activeTab === 'history' && (
-            <HistoryView />
-          )}
+          {activeTab === 'history' && <HistoryView />}
 
-          {activeTab === 'data' && (
-            <FileManager />
-          )}
+          {activeTab === 'data' && <FileManager />}
         </div>
       </div>
     </HealthDataProvider>
-  )
+  );
 }
 
-export default App
+export default App;
