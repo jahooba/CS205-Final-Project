@@ -72,7 +72,7 @@ export default function FoodIntakeTracker() {
         </button>
         </div>
         <div className="w-full max-w-sm">
-            {foodEntries?.map((entry) => (
+            {todaysFoodEntries?.map((entry) => (
                 <div key={entry.id} className="p-2 border-b">
                     <div className="font-bold">{entry.food}</div>
                     <div>{entry.calories} calories</div>
