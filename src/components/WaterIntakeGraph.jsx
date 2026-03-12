@@ -23,6 +23,7 @@ export default function WaterIntakeGraph() {
   const todaysWaterEntries = waterEntries.filter(entry =>
     entry.timestamp.startsWith(today)
   );
+  console.log("Today's Water Entries:", todaysWaterEntries);
 
   const data = todaysWaterEntries.map((entry) => {
     runningTotal += entry.amount || 0;

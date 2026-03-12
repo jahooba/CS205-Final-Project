@@ -55,6 +55,7 @@ export default function WaterBottleTracker() {
       <h2 className="text-xl font-bold">
         Water Intake Tracker
       </h2>
+      <p>Track the amount of water you drink and meet your daily goal in fluid ounces. You can add water by sips (1 oz.), gulps (4 oz.), or full drinks (8 oz.) and reset the bottle if needed. </p>
 
       {/* Hydration Ring */}
 

@@ -41,6 +41,7 @@ export default function FoodIntakeTracker() {
     return (
     <div className="p-6 bg-white rounded shadow-md flex flex-col items-center gap-6">
       <h2 className="text-xl font-bold">Food Intake Tracker</h2>
+      <p>Add food you eat throughout the day and meet your daily goal for calories.</p>
       {/* Calorie Progress Bar */}
       <div className="w-full max-w-sm">
         <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
@@ -84,7 +85,7 @@ export default function FoodIntakeTracker() {
                             const newCalories = prompt('Edit calories:', entry.calories);
 
                             if (newFood !== null && newCalories !== null) {
-                            const updated = foodEntries.map(e =>
+                            const updated = todaysFoodEntries.map(e =>
                                 e.id === entry.id
                                 ? { ...e, food: newFood, calories: parseInt(newCalories, 10) }
                                 : e
@@ -97,7 +98,7 @@ export default function FoodIntakeTracker() {
                         >
                         Edit
                     </button>
-                    <button onClick={() => {deleteFoodEntries(foodEntries.filter(e => e.id !== entry.id))}} className="text-red-500 text-sm mt-1">
+                    <button onClick={() => {deleteFoodEntries(todaysFoodEntries.filter(e => e.id !== entry.id))}} className="text-red-500 text-sm mt-1">
                         Delete
                     </button>
                 </div>
